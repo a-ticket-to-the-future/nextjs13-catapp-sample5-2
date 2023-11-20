@@ -1,36 +1,64 @@
 "use client"
 
 
+import { GetServerSideProps, NextPage } from 'next';
 import Image from 'next/image'
-import { useState } from 'react';
-
-export default function Home() {
-
-  interface SearchCatImage {
-    id : string;
-    url:string;
-    width : number;
-    height:number;
-  }
-
-  const [catImageUrl,setCatImageUrl] = useState(""); 
+import { useEffect, useRef, useState } from 'react';
 
 
 
-  const fetchCatImage = async ():Promise<SearchCatImage> => {
-    const res = await fetch("https://api.thecatapi.com/v1/images/search");
-    const result =await res.json();
-    // console.log(result);
-    
-    return result[0];
+interface SearchCatImage {
+  id : string;
+  url:string;
+  width : number;
+  height:number;
+  
+}
 
-  };
+
+interface IndexPageProps {
+initialCatImageUrl : string;
+}
+
+
+const fetchCatImage = async ():Promise<SearchCatImage> => {
+  const res = await fetch("https://api.thecatapi.com/v1/images/search",{cache:'no-store'});
+  const result =await res.json();
+  // console.log(result);
+  // console.log(result[0].url);
+  return result[0];
+
+};
+
+const Home : NextPage<IndexPageProps>  = ({initialCatImageUrl}) => {
+
+
+
+  const [catImageUrl,setCatImageUrl] = useState(initialCatImageUrl); 
+  //毎回変わっていくから状態変数で保持する意図からuseState() また、ここの()の中の"”を忘れないようにしよう
+
+
+
 
   const handleClick = async () => {
     const catImage = await fetchCatImage();
     setCatImageUrl(catImage.url);
 
   }
+
+  //useEffectを試してみよう
+  useEffect(() => {
+
+    fetchCatImage().then((result)=>{
+      // console.log(result);
+      setCatImageUrl(result.url);
+      
+     })
+    
+    
+    
+
+  },[]);
 
 
   return (
@@ -44,3 +72,19 @@ export default function Home() {
     </div>
   )
 }
+
+
+// export const getServerSideProps: GetServerSideProps<IndexPageProps> = async () => {
+//  const catImage:SearchCatImage = await fetchCatImage();
+
+//   return {
+//     props : {
+//       initialCatImageUrl : catImage.url,
+//     },
+//   }
+
+// }
+
+export default Home ;
+
+
